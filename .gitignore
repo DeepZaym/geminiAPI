@@ -1,0 +1,6 @@
+.env
+catatan
+node_modules
+npm-debug.log
+uploads
+package-lock.json
