@@ -24,3 +24,32 @@ app.post('/generate-text', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+const multer = require('multer');
+const fs = require('fs');
+
+const upload = multer({ dest: 'uploads/' });
+
+function imageToGenerativePart(imagePath) {
+    return {
+        inlineData: {
+            data: Buffer.from(fs.readFileSync(imagePath)).toString('base64'),
+            mimeType: 'image/jpeg',
+        },
+    };
+}
+
+app.post('/generate-from-image', upload.single('image'), async (req, res) => {
+    const prompt = req.body.prompt || 'Describe the image';
+    const image = imageToGenerativePart(req.file.path);
+
+    try {
+        const result = await model.generateContent([prompt, image]);
+        const response = await result.response;
+        res.json({ output: response.text() });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    } finally {
+        fs.unlinkSync(req.file.path);
+    }
+});
